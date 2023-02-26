@@ -37,3 +37,25 @@ export PATH=$PATH:$GOPATH/bin
 
 You can get a complete list, along with a brief description of each variable, using the ``go env`` command.
 
+## The Go Command
+
+There are two similar commands available via Go: ``go run`` and ``go build``. Each takes
+either a single Go file, a list of Go files, or the name of a package.
+
+## go run
+
+The ``go run`` command does in fact compile your code into a binary. However, the binary is built in a temporary directory.
+The ``go run`` command builds the binary, executes the binary from that temporary directory, and then deletes the binary
+after your program finishes.
+
+```shell
+go run hello.go
+```
+
+## go build
+
+If you want a different name for your application, or if you want to store it in a different location, use the `-o` flag.
+
+```shell
+go build -o hello_world hello.go
+```
