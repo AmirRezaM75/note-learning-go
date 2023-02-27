@@ -42,7 +42,7 @@ You can get a complete list, along with a brief description of each variable, us
 There are two similar commands available via Go: ``go run`` and ``go build``. Each takes
 either a single Go file, a list of Go files, or the name of a package.
 
-## go run
+### go run
 
 The ``go run`` command does in fact compile your code into a binary. However, the binary is built in a temporary directory.
 The ``go run`` command builds the binary, executes the binary from that temporary directory, and then deletes the binary
@@ -52,10 +52,32 @@ after your program finishes.
 go run hello.go
 ```
 
-## go build
+### go build
 
 If you want a different name for your application, or if you want to store it in a different location, use the `-o` flag.
 
 ```shell
 go build -o hello_world hello.go
 ```
+
+## Getting Third-Party Go Tools
+
+Go developers don’t rely on a centrally hosted service, like Maven Central for Java or the NPM registry for JavaScript.
+Instead, they share projects via their source code repositories.
+The `go install` command takes an argument, which is the location of the source code repository of the project,
+followed by an @ and the version of the tool you want.
+
+
+```shell
+go install github.com/rakyll/hey@0.1.4
+```
+
+This downloads hey and all of its dependencies, builds the program, and installs the binary in your `$GOPATH/bin` directory.
+
+If you want to update a tool to a newer version, rerun `go install` with the newer version specified or with `@latest`.
+
+As we’ll talk about in “Module Proxy Servers” on page 200, the contents of Go repositories are cached in proxy servers.
+Depending on the repository and the values in your `GOPROXY` environment variable,
+`go install` may download from a proxy or directly from a repository.
+If `go install` downloads directly from a repository, it relies on command-line tools being installed on your computer.
+For example, you must have Git installed to download from GitHub.
