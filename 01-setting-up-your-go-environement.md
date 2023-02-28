@@ -76,8 +76,57 @@ This downloads hey and all of its dependencies, builds the program, and installs
 
 If you want to update a tool to a newer version, rerun `go install` with the newer version specified or with `@latest`.
 
-As we’ll talk about in “Module Proxy Servers” on page 200, the contents of Go repositories are cached in proxy servers.
+> As we’ll talk about in “Module Proxy Servers” on page 200, the contents of Go repositories are cached in proxy servers.
 Depending on the repository and the values in your `GOPROXY` environment variable,
 `go install` may download from a proxy or directly from a repository.
 If `go install` downloads directly from a repository, it relies on command-line tools being installed on your computer.
 For example, you must have Git installed to download from GitHub.
+
+## Formatting Your Code
+
+`go fmt` automatically reformat your code to match the standard format.
+
+There's an enhanced version of `go fmt` available called `goimports` that also cleans up your import statements.
+It puts them in alphabetic order, removes unused imports, and attempts to guess any unspecified imports.
+
+You can download `goimports` with the command `go install golang.org/x/tools/cmd/goimports@latest`.
+
+You run it across your project with the command:
+
+```shell
+goimports -l -w .
+```
+
+- The -l flag tells it to print the files with incorrect formatting to the console.
+- The -w flag tells it to modify the files in-place.
+- The . specifies the files to be scanned: everything in the current directory and all of its subdirectories.
+
+### The Semicolon Insertion Rule
+The `go fmt` command won’t fix braces on the wrong line, because of the **semicolon insertion rule**.
+Like C or Java, Go requires a semicolon at the end of every statement.
+However, Go developers never put the semicolons in themselves;
+the Go compiler does it for them following a very simple rule described in Effective Go:
+
+If the last token before a newline is any of the following, the lexer inserts a semicolon after the token:
+- An identifier (which includes words like int and float64)
+- A basic literal such as a number or string constant
+- One of the tokens: “break”, “continue”, “fallthrough”, “return”, “++”, “--”, “)”, or “}”
+With this simple rule in place, you can see why putting a brace in the wrong place
+breaks. If you write your code like this:
+
+```
+func main()
+{
+    fmt.Println("Hello, world!")
+}
+```
+
+the semicolon insertion rule sees the “)” at the end of the func main() line and turns
+that into:
+```
+func main();
+{
+    fmt.Println("Hello, world!");
+};
+```
+and that’s not valid Go.
