@@ -114,7 +114,7 @@ If the last token before a newline is any of the following, the lexer inserts a 
 With this simple rule in place, you can see why putting a brace in the wrong place
 breaks. If you write your code like this:
 
-```
+```go
 func main()
 {
     fmt.Println("Hello, world!")
@@ -123,10 +123,48 @@ func main()
 
 the semicolon insertion rule sees the “)” at the end of the func main() line and turns
 that into:
-```
+```go
 func main();
 {
     fmt.Println("Hello, world!");
 };
 ```
 and that’s not valid Go.
+
+## Linting and Vetting
+"Linter" comes from the Unix team at Bell Labs; the first linter was written in 1978.
+
+You can't automatically assume that `golint` is 100% accurate: because the kinds of issues that `golint` finds
+are more fuzzy, it sometimes has false positives and false negatives. This means that you don't have to make the changes
+that `golint` suggests. But you should take the suggestions seriously.
+
+Install `golint` with the following command:
+
+```shell
+go install golang.org/x/lint/golint@latest
+```
+
+And run it with:
+
+```shell
+golint ./...
+```
+
+That runs `golint` over your entire project.
+
+> [Golint](https://github.com/golang/lint) is deprecated and frozen. There's no drop-in replacement for it,
+but tools such as [Staticcheck](https://staticcheck.io/) and `go vet` should be used instead.
+
+There is another class of errors that developers run into. The code is syntactically valid,
+but there are mistakes that are not what you meant to do.
+This includes things like assigning values to variables that are never used.
+
+```shell
+go vet ./...
+```
+
+Rather than use separate tools, you can run multiple tools together with `golangci-lint`.
+Because `golangci-lint` runs so many tools (as of this writing, it runs 10 different linters by default and allows you
+to enable another 50), it’s inevitable that your team may disagree with some of its suggestions.
+You can configure which linters are enabled and which files they analyze by including a file named `.golangci.yml`.
+Check out the [documentation](https://golangci-lint.run/usage/configuration/) for the file format.
