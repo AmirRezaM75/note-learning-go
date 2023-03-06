@@ -168,3 +168,43 @@ Because `golangci-lint` runs so many tools (as of this writing, it runs 10 diffe
 to enable another 50), it’s inevitable that your team may disagree with some of its suggestions.
 You can configure which linters are enabled and which files they analyze by including a file named `.golangci.yml`.
 Check out the [documentation](https://golangci-lint.run/usage/configuration/) for the file format.
+
+## Choose Your Tools
+
+**Language server** is a standard specification for an API that enables editors to implement intelligent editing behavior,
+like code completion, linting, and finding usages. You can check out the [language server protocol](https://microsoft.github.io/language-server-protocol/).
+
+### The Go Playground
+
+You can even simulate multiple files by separating each file with a line that looks like `-- filename.go --`
+
+![alt text](images/go-playground.png)
+
+## Makefiles
+
+```
+.DEFAULT_GOAL := build
+
+fmt:
+    go fmt ./...
+.PHONY:fmt
+
+lint: fmt
+    golint ./...
+.PHONY:lint
+
+vet: fmt
+    go vet ./...
+.PHONY:vet
+
+build: vet
+    go build hello.go
+.PHONY:build
+```
+
+Each possible operation is called a *target*.
+The `.DEFAULT_GOAL` defines which target is run when no target is specified.
+The word before the colon is the name of the target. Any words after the target (like vet in the line build: vet)
+are the other targets that must be run before the specified target runs.
+The tasks that are performed by the target are on the indented lines after the target.
+The `.PHONY` line keeps make from getting confused if you ever create a directory in your project with the same name as a target.
