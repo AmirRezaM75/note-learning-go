@@ -208,3 +208,44 @@ The word before the colon is the name of the target. Any words after the target 
 are the other targets that must be run before the specified target runs.
 The tasks that are performed by the target are on the indented lines after the target.
 The `.PHONY` line keeps make from getting confused if you ever create a directory in your project with the same name as a target.
+
+## Staying Up to Date
+
+Despite these backward compatibility guarantees, bugs do happen, so it’s natural to
+want to make sure that a new release doesn't break your programs. One option is to
+install a secondary Go environment. For example, if you are currently running version 1.15.2
+and wanted to try out version 1.15.6, you would use the following commands:
+
+```shell
+go get golang.org/dl/go.1.15.6
+go1.15.6 download
+```
+
+You can then use the command go1.15.6 instead of the go command to see if version
+1.15.6 works for your programs:
+
+```shell
+go1.15.6 build
+```
+
+Once you have validated that your code works, you can delete the secondary environment by finding its `GOROOT`,
+deleting it, and then deleting its binary from your `$GOPATH/bin` directory.
+Here’s how to do that:
+
+```shell
+go1.15.6 env GOROOT # /usr/local/go
+rm -rf $(go1.15.6 env GOROOT)
+rm $(go env GOPATH)/bin/go1.15.6 # GOPATH=~/go
+```
+
+When you are ready to update the Go development tools installed on your computer,
+Those who used the installers on [https://golang.org/dl](https://golang.org/dl)
+can download the latest installer, which removes the old version when it installs the new one.
+Linux and BSD users need to download the latest version, move the old version to a
+backup directory, expand the new version, and then delete the old version:
+
+```shell
+mv /usr/local/go /usr/local/old-go
+tar -C /usr/local -xzf go1.15.2.linux-amd64.tar.gz
+rm -rf /usr/local/old-go
+```
