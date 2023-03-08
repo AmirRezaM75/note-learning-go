@@ -248,4 +248,4 @@ backup directory, expand the new version, and then delete the old version:
 mv /usr/local/go /usr/local/old-go
 tar -C /usr/local -xzf go1.15.2.linux-amd64.tar.gz
 rm -rf /usr/local/old-go
-```
+``` 
