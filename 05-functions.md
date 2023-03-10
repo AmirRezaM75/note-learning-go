@@ -14,10 +14,11 @@ When you have multiple input parameters of the same type, you can write your inp
 func div(numerator, denominator int) int {}
 ```
 
-### Simulating Name and Optional Parameters
+### Simulating Named and Optional Parameters
 
-Go doesn't have named and optional input parameters. If you want to emulate named and optional parameters, define a
-struct that has fields that match the desired parameters.
+Go doesn't have named and optional input parameters. You must supply all of the parameters for a function
+(except [Variadic parameters](#variadic-input-parameters-and-slices)). If you want to emulate named and optional
+parameters, define a struct that has fields that match the desired parameters.
 
 ```go
 type User struct {
@@ -86,7 +87,7 @@ func div(numerator int, denominator int) (int, int, error) {
 }
 ```
 
-If the function completes successfully, we return nil for the error’s value. By convention, the error is always the
+If the function completes successfully, we return `nil` for the error’s value. By convention, the error is always the
 last (or only) value returned from a function.
 
 Calling our updated function looks like this:
@@ -104,8 +105,7 @@ func main() {
 ### Multiple Return Values Are Multiple Values
 
 If you are familiar with Python, you might think that multiple return values are like Python functions returning a tuple
-that’s optionally destructured if the tuple’s values are assigned to multiple variables. Example 5-2 shows some sample
-code run in the Python interpreter.
+that’s optionally destructured if the tuple’s values are assigned to multiple variables.
 
 ```python
 def div(n,d):
@@ -134,8 +134,11 @@ the name _. For example, if we weren't going to read remainder, we would write t
 
 ```go
 quotient, _, error := div(5, 2)
+```
 
-// Implicitly ignore all of the return values
+You may implicitly ignore all of the return values:
+
+```go
 div(5,2)
 ```
 
@@ -149,7 +152,7 @@ func div(n int, d int) (quotient int, remainder int, err error) {
         err = errors.New("cannot divide by zero")
         return quotient, remainder, err
     }
-    quotient, remainder = n/d, n%denominator
+    quotient, remainder = n/d, n%d
     return quotient, remainder, err
 }
 ```
@@ -160,11 +163,19 @@ Named return values are initialized to their zero values when created.
 > by using _ as the name for any return values you want to remain
 > nameless.
 
-While some developers like to use named return parameters because they provide additional documentation, they do have
-some potential corner cases:
+While named return values provide additional documentation, they do have some potential corner cases:
 
 - Shadowing
 - No guarantee to be returned by function
+
+```go
+func div(numerator, denominator int) (quotient int, remainder int) {
+    quotient, remainder = 20, 30
+    return numerator / denominator, numerator % denominator
+}
+
+div(5, 2) // 2, 1
+```
 
 There is one situation where named return parameters are essential; [defer](#defer)
 
@@ -236,8 +247,7 @@ func main() {
             continue
         }
       
-        // Calling a function in a variable
-        // looks just like calling a function directly.
+        // Calling a function in a variable looks just like calling a function directly.
         result := opFunc(p1, p2)
         fmt.Println(result)
     }
