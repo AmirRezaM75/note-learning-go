@@ -143,15 +143,13 @@ Install `golint` with the following command:
 go install golang.org/x/lint/golint@latest
 ```
 
-And run it with:
+And run it over your entire project:
 
 ```shell
 golint ./...
 ```
 
-That runs `golint` over your entire project.
-
-> [Golint](https://github.com/golang/lint) is deprecated and frozen. There's no drop-in replacement for it, 
+> [Golint](https://github.com/golang/lint) is deprecated and frozen. There's no drop-in replacement for it,
 > but tools such as [Staticcheck](https://staticcheck.io/) and `go vet` should be used instead.
 
 There is another class of errors that developers run into. The code is syntactically valid, but there are mistakes that
@@ -166,6 +164,13 @@ so many tools (as of this writing, it runs 10 different linters by default and a
 inevitable that your team may disagree with some of its suggestions. You can configure which linters are enabled and
 which files they analyze by including a file named `.golangci.yml`. Check out
 the [documentation](https://golangci-lint.run/usage/configuration/) for the file format.
+
+```go
+for userId, _ := range connections {}
+```
+
+Code above has no issues from `go vet` and `go fmt` perspective but `golint` reports
+"unnecessary assignment to the blank identifier".
 
 ## Choose Your Tools
 
@@ -202,8 +207,8 @@ build: vet
 ```
 
 Each possible operation is called a *target*. The `.DEFAULT_GOAL` defines which target is run when no target is
-specified. The word before the colon is the name of the target. Any words after the target (like vet in the line build:
-vet)
+specified. The word before the colon is the name of the target. Any words after the target (like vet in the line
+`build:vet`)
 are the other targets that must be run before the specified target runs. The tasks that are performed by the target are
 on the indented lines after the target. The `.PHONY` line keeps make from getting confused if you ever create a
 directory in your project with the same name as a target.
