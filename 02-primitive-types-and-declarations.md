@@ -142,4 +142,30 @@ conversion to make your integers into floating point numbers.
 | <<     | left shift          | integers                                  |
 | \>>    | right shift         | integers                                  |
 
+#### Floating Point Types
 
+| Type name | Largest absolute value                         | Smallest (nonzero) absolute value              |
+|-----------|------------------------------------------------|------------------------------------------------|
+| float32   | 3.40282346638528859811704183484516925440e+38   | 1.401298464324817070923729583289916131280e-45  |
+| float64   | 1.797693134862315708145274237317043567981e+308 | 4.940656458412465441765687928682213723651e-324 |
+
+The zero value for the floating point types is 0.
+
+Floating point literals have a default type of float64.
+
+Go stores floating point numbers using a specification called [IEEE 754](https://www.youtube.com/watch?v=RuKkePyo9zk).
+For example, if you store the number –3.1415 in a float64, the 64-bit representation in memory looks like:
+
+1100000000001001001000011100101011000000100000110001001001101111
+
+which is exactly equal to –3.14150000000000018118839761883.
+
+> A floating point number cannot represent a decimal value exactly. Do not use them to represent money or any other value that must have an exact decimal representation!
+
+Dividing a nonzero floating point variable by 0 returns `+Inf` or `-Inf` (positive or negative infinity), depending on
+the sign of the number. Dividing a floating point variable set to 0 by 0 returns `NaN` (Not a Number).
+
+While Go lets you use == and != to compare floats, don’t do it. Due to the inexact nature of floats, two floating point
+values might not be equal when you think they should be. Instead, define a maximum allowed variance and see if the
+difference between two floats is less than that. This value (sometimes called _epsilon_) depends on what your accuracy
+needs are.
