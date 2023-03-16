@@ -116,7 +116,7 @@ them: amd64p32, mips64p32, and mips64p32le.
 Integer literals default to being of int type.
 
 There are two other special names for integer types, `rune` and `uintptr`. We looked at rune literals earlier and
-discuss the rune type in “A Taste of Strings and Runes” on page 26 and `uintptr` in Chapter 14.
+discuss the rune type in [“A Taste of Strings and Runes”](#a-taste-of-strings-and-runes) and `uintptr` in Chapter 14.
 
 If you are writing a library function that should work with any integer type, write a pair of functions, one
 with `int64` for the parameters and variables and the other with `uint64`.
@@ -169,3 +169,116 @@ While Go lets you use == and != to compare floats, don’t do it. Due to the ine
 values might not be equal when you think they should be. Instead, define a maximum allowed variance and see if the
 difference between two floats is less than that. This value (sometimes called _epsilon_) depends on what your accuracy
 needs are.
+
+### A Taste of Strings and Runes
+
+The zero value for a string is an empty string.
+
+Strings in Go are immutable.
+
+The `rune` type represents a single code point and is an alias for the `int32` type.
+
+A rune literal's default type is a rune and a string literal's default type is a string.
+
+### Explicit Type Conversion
+
+Most languages that have multiple numeric types, automatically convert from one to another when needed. This is called
+_automatic type promotion_. Go doesn't support that. You must use a _type conversion_.
+
+```go
+var x int = 10
+var y float64 = 30.2
+var z float64 = float64(x) + y
+var d int = x + int(y)
+```
+
+Since all type conversions in Go are explicit, you can't treat another Go type as a boolean. In many languages nonzero
+number or a nonempty string can be interpreted as a boolean `true`. The rules for "truthy" values vary from language to
+language and can be confusing.
+
+No other type can be converted to a bool, implicitly or explicitly. You must use one of the comparison operators.
+
+## var Versus :=
+
+```go
+var x int = 10
+```
+
+If the type on the righthand side of the = is the expected type of your variable, you can leave off the type from the
+left side of the = . Since the default type of an integer literal is `int`, we can rewrite it as follows:
+
+```go
+var x = 10
+```
+
+Go also supports a short declaration format. When you are within a function, you can use the `:=` operator to replace a
+var declaration that uses _type inference_.
+
+```go
+x := 10
+```
+
+Conversely, if you want to declare a variable and assign it the zero value:
+
+```go
+var x int
+```
+
+You can declare multiple variables at once with `var`, and they can be of the same type:
+
+```go
+var x, y int = 10, 20
+```
+
+all zero values of the same type:
+
+```go
+var x, y int
+```
+
+or of different types:
+
+```go
+var x, y = 10, "hello"
+// or
+x, y := 10, "hello"
+```
+
+While var and := allow you to declare multiple variables on the same line, only use this style when assigning multiple
+values returned from a [function](05-functions.md) or the comma ok idiom on page 54.
+
+If you are declaring multiple variables at once, you can wrap them in a declaration list:
+
+```go
+var (
+  x     int
+  y         = 20
+  z     int = 30
+  d, e      = 40, "hello"
+  f, g string
+)
+```
+
+The `:=` operator can do one trick that you cannot do with `var`: it allows you to assign values to existing variables,
+too. As long as there is one new variable on the lefthand side of the :=
+
+```go
+x := 10
+x, y := 30, "hello"
+```
+
+If you are declaring a variable at package level, you must use `var` because `:=` is not legal outside of functions.
+
+There are some situations within functions where you should avoid `:=` :
+
+- When initializing a variable to its zero value, use `var x int`. This makes it clear that the zero value is intended.
+
+- When assigning an untyped constant or a literal to a variable and the default type for the constant or literal isn’t
+  the type you want for the variable. Favor `var x byte = 20` over `x := byte(20)`.
+
+- Because := allows you to assign to both new and existing variables, it sometimes creates new variables when you think
+  you are reusing existing ones (see “Shadowing Variables” on page 62 for details). In those situations, explicitly
+  declare all of your new variables with var to make it clear which variables are new, and then use the assignment
+  operator to assign values to both new and old variables.
+
+> Avoid declaring variables outside of functions (package level variables) because they complicate data flow analysis. Also the Go compiler won’t stop you from creating [unread package-level variables](#unused-variables).
