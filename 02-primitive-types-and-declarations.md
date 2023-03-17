@@ -61,8 +61,9 @@ delimited with backquotes (\`) and can contain any literal character except a ba
 
 \`Greetings and "Salutations"\` vs "Greetings and \"Salutations\""
 
-As we’ll see in “Explicit Type Conversion” on page 26 you can’t even add two integer variables together if they are
-declared to be of different sizes. However, Go lets you use an integer literal in floating point expressions
+As we’ll see in [“Explicit Type Conversion”](#explicit-type-conversion) you can’t even add two integer variables
+together if they are declared to be of different sizes. However, Go lets you use an integer literal in floating point
+expressions
 
 ```go
 fmt.Println(2 + 3.2) // 5.2
@@ -282,3 +283,101 @@ There are some situations within functions where you should avoid `:=` :
   operator to assign values to both new and old variables.
 
 > Avoid declaring variables outside of functions (package level variables) because they complicate data flow analysis. Also the Go compiler won’t stop you from creating [unread package-level variables](#unused-variables).
+
+## Using const
+
+```go
+const x int64 = 10
+
+const (
+  idKey   = "id"
+  nameKey = "name"
+)
+
+const z = 20 * 10
+
+func main() {
+  const y = "hello"
+  fmt.Println(x)
+  fmt.Println(y)
+  x = x + 1
+  y = "bye"
+  fmt.Println(x)
+  fmt.Println(y)
+}
+```
+
+If you try to run this code, compilations fails with the following error messages:
+
+```shell
+./const.go:20:4: cannot assign to x
+./const.go:21:4: cannot assign to y
+```
+
+As you see, you declare a constant at the package level or within a function. Just like `var`, you can (and should)
+declare a group of related constants within a set of parentheses.
+
+> Constants in Go are a way to give names to literals. There is no way in Go to declare that a variable is immutable.
+
+## Typed and Untyped Constants
+
+If you are giving a name to a mathematical constant that could be used with multiple numeric types, then keep the
+constant untyped. In general, leaving a constant untyped gives you more flexibility. We’ll use typed constants when we
+look at creating enumerations with `iota` in “iota Is for Enumerations—Sometimes” on page 137.
+
+Here’s what an untyped constant declaration looks like:
+
+```go
+const x = 10
+```
+
+All of the following assignments are legal:
+
+```go
+var y int = x
+var z float64 = x
+var d byte = x
+```
+
+Here’s what a typed constant declaration looks like:
+
+```go
+const typedX int = 10
+```
+
+This constant can only be assigned directly to an int . Assigning it to any other type produces a compile-time error
+like this:
+
+`cannot use typedX (type int) as type float64 in assignment`
+
+## Unused Variables
+
+Another Go requirement is that every declared local variable must be read. It is a compile-time error to declare a local
+variable and to not read its value.
+
+Perhaps surprisingly, the Go compiler allows you to create unread constants with `const`. This is because constants in
+Go are calculated at compile time and cannot have any side effects. This makes them easy to eliminate: if a constant
+isn’t used, it is simply not included in the compiled binary.
+
+## Naming Variables and Constants
+
+Like most languages, Go requires identifier names to start with a letter or underscore, and the name can contain
+numbers, underscores, and letters. Go’s definition of “letter” and “number” is a bit broader than many languages. Any
+Unicode character that is considered a letter or digit is allowed.
+
+```go
+_0 := 0_0
+_𝟙 := 20
+π := 3
+ａ := "hello" // Unicode U+FF41
+```
+
+These names are confusing or difficult to type on many keyboards.
+
+Idiomatic Go doesn't use snake case (names like index_counter). Instead, Go uses camel case (names like indexCounter)
+when an identifier name consists of multiple words.
+
+In many languages, constants are always written in all uppercase letters, with words separated by underscores (names
+like INDEX_COUNTER). Go does not follow this pattern. This is because Go uses the case of the first letter in the name
+of a package-level declaration to determine if the item is accessible outside the package. We will revisit this when we
+talk about packages in Chapter 9.
