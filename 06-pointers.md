@@ -127,3 +127,61 @@ p := person{
 
 Why does this work? When we pass a constant to a function, the constant is copied to a parameter, which is a variable.
 Since it’s a variable, it has an address in memory. The function then returns the variable’s memory address.
+
+## Don't Fear the Pointers
+
+```java
+class Foo:
+    def __init__(self, x):
+        self.x = x
+
+def outer():
+    f = Foo(10)
+
+    inner1(f)
+    print(f.x)
+    
+    inner2(f)
+    print(f.x)
+    
+    g = None
+    inner2(g)
+    print(g is None)
+
+def inner1(f):
+    f.x = 20
+
+def inner2(f):
+    f = Foo(30)
+
+outer()
+```
+
+Running this code prints out:
+
+```
+20
+20
+True
+```
+
+That’s because the following things are true in Java, Python, JavaScript, and Ruby:
+
+- If you pass an instance of a class to a function and you change the value of a field, the change is reflected in the
+  variable that was passed in.
+- If you reassign the parameter, the change is not reflected in the variable that was passed in.
+- If you pass `nil/null/None` for a parameter value, setting the parameter itself to a new value doesn’t modify the
+  variable in the calling function.
+
+Some people explain this behavior by saying that class instances are passed by reference in these languages. This is
+untrue. If they were being passed by reference, cases two and three would change the variable in the calling function.
+These languages are always pass-by-value, just like Go.
+
+What we are seeing is that every instance of a class in these languages is implemented as a pointer. When a class
+instance is passed to a function or method, the value being copied is the pointer to the instance. When inner2 reassigns
+f to a new class instance, this creates a separate instance and does not affect the variable in outer.
+
+The difference between Go and these languages is that Go gives you the choice to use pointers or values for both
+primitives and structs. Most of the time, you should use a value. They make it easier to understand how and when your
+data is modified. A secondary benefit is that using values reduces the amount of work that the garbage collector has to
+do.
