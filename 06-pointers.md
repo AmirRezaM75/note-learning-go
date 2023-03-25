@@ -185,3 +185,62 @@ The difference between Go and these languages is that Go gives you the choice to
 primitives and structs. Most of the time, you should use a value. They make it easier to understand how and when your
 data is modified. A secondary benefit is that using values reduces the amount of work that the garbage collector has to
 do.
+
+## Pointers Indicate Mutable Parameters
+
+MIT’s course on [Software Construction](http://web.mit.edu/6.031/www/fa20/classes/08-immutability/) sums up the reasons
+why: “Immutable types are safer from bugs, easier to understand, and more ready for change. Mutability makes it harder
+to understand what your program is doing, and much harder to enforce contracts. Using mutable objects is just fine if
+you are using them entirely locally within a method, and with only one reference to the object”
+
+The lack of immutable declarations in Go might seem problematic, but the ability to choose between value and pointer
+parameter types addresses the issue.
+
+Since Go is a call by value language, the values passed to functions are copies. For nonpointer types like primitives,
+structs, and arrays, this means that the called function cannot modify the original.
+
+However, if a pointer is passed to a function, the function gets a copy of the pointer. This still points to the
+original data, which means that the original data can be modified by the called function.
+
+The first implication is that when you pass a `nil` pointer to a function, you cannot make the value non-nil. You can
+only reassign the value if there was a value already assigned to the pointer.
+
+```go
+func failedUpdate(g *int) {
+  x := 10
+  g = &x
+}
+
+func main() {
+  var f *int // f is nil
+  failedUpdate(f)
+  fmt.Println(f) // prints nil
+}
+```
+
+![Figure 6-3. Failing to update a nil pointer](images/figure6-3.png)
+
+The second implication is that if you want the value assigned to a pointer parameter to still be there when you exit the
+function, you must dereference the pointer and set the value. If you change the pointer, you have changed the copy, not
+the original.
+
+```go
+func failedUpdate(px *int) {
+  x2 := 20
+  px = &x2
+}
+
+func update(px *int) {
+  *px = 20
+}
+
+func main() {
+  x := 10
+  failedUpdate(&x)
+  fmt.Println(x) // prints 10
+  update(&x)
+  fmt.Println(x) // prints 20
+}
+```
+
+![Figure 6-4. The wrong way and the right way to update a pointer](images/figure6-4.png)
