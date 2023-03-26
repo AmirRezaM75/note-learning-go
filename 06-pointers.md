@@ -245,7 +245,6 @@ func main() {
 
 ![Figure 6-4. The wrong way and the right way to update a pointer](images/figure6-4.png)
 
-
 ## Pointer Passing Performance
 
 The time to pass a pointer into a function is constant for all data sizes, roughly one nanosecond. This makes sense, as
@@ -257,3 +256,10 @@ For example, a 100-byte data structure takes around 10 nanoseconds to be returne
 takes about 30 nano‐seconds. Once your data structures are larger than a megabyte, the performance advantage flips. It
 takes nearly 2 milliseconds to return 10 megabytes of data, but a little more than half a millisecond to return a
 pointer to it.
+
+## The Zero Value Versus No Value
+
+The other common usage of pointers in Go is to indicate the difference between a variable or field that’s been assigned
+the zero value and a variable or field that hasn't been assigned a value at all.
+
+When converting data back and forth from JSON, use a pointer value for fields in the struct that are nullable.
