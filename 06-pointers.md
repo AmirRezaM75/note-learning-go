@@ -244,3 +244,16 @@ func main() {
 ```
 
 ![Figure 6-4. The wrong way and the right way to update a pointer](images/figure6-4.png)
+
+
+## Pointer Passing Performance
+
+The time to pass a pointer into a function is constant for all data sizes, roughly one nanosecond. This makes sense, as
+the size of a pointer is the same for all data types. Passing a value into a function takes longer as the data gets
+larger. It takes about a millisecond once the value gets to be around 10 megabytes of data.
+
+For data structures that are smaller than a megabyte, it is actually slower to return a pointer type than a value type.
+For example, a 100-byte data structure takes around 10 nanoseconds to be returned, but a pointer to that data structure
+takes about 30 nano‐seconds. Once your data structures are larger than a megabyte, the performance advantage flips. It
+takes nearly 2 milliseconds to return 10 megabytes of data, but a little more than half a millisecond to return a
+pointer to it.
