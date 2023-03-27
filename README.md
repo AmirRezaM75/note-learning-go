@@ -8,3 +8,4 @@ To the horror of many, there are pointers.
 3. Composite Types
 4. Blocks, Shadows, and Control Structures
 5. [Functions](05-functions.md)
+6. [Pointers](06-pointers.md)

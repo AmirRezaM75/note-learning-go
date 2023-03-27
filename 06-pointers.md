@@ -263,3 +263,38 @@ The other common usage of pointers in Go is to indicate the difference between a
 the zero value and a variable or field that hasn't been assigned a value at all.
 
 When converting data back and forth from JSON, use a pointer value for fields in the struct that are nullable.
+
+## The Difference Between Maps and Slices
+
+Within the Go runtime, a map is implemented as a pointer to a struct. Passing a map to a function means that you are
+copying a pointer.
+
+You should avoid using maps for input parameters or return values, especially on public APIs. Rather than passing a map
+around, use a struct.
+
+1. From the standpoint of immutability, maps are bad because the only way to know what ended up in the map is to trace
+   through all of the functions that interact with it.
+2. [Reducing the garbage collector's workload](#reducing-the-garbage-collectors-workload)
+
+A slice is implemented as a struct with three fields: an int field for length, an int field for capacity, and a pointer
+to a block of memory.
+
+Changing the values in the slice changes the memory that the pointer points to, so the changes are seen in both the copy
+and the original.
+
+![Figure 6-7. Modifying the contents of a slice](images/figure6-7.png)
+
+Changes to the length and capacity are not reflected back in the original, because they are only in the copy. Changing
+the capacity means that the pointer is now pointing to a new, bigger block of memory.
+
+![Figure 6-8. Changing the capacity changes the storage](images/figure6-8.png)
+
+If the slice copy is appended to and there is enough capacity to not allocate a new slice, the length changes in the
+copy and the new values are stored in the block of memory that’s shared by the copy and the original. However, the
+length in the original slice remains unchanged. This means the Go runtime prevents the original slice from seeing those
+values since they are beyond the length of the original slice.
+
+![Figure 6-9. Changing the length is invisible in the original](images/figure6-9.png)
+
+
+## Reducing the Garbage Collector’s Workload

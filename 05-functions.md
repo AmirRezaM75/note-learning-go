@@ -520,7 +520,8 @@ func main() {
 For the map, it’s easy to explain what happens: any changes made to a map parameter are reflected in the variable passed
 into the function. For a slice, it’s more complicated. You can modify any element in the slice, but you can’t lengthen
 the slice. This is true for maps and slices that are passed directly into functions as well as map and slice fields in
-structs.
+structs. We'll learn about the reason
+in ["The Difference Between Maps and Slices"](./06-pointers.md#the-difference-between-maps-and-slices)
 
 > Every type in Go is a value type. It’s just that sometimes the value is a pointer.
 
