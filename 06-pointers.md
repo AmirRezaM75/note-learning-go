@@ -296,5 +296,48 @@ values since they are beyond the length of the original slice.
 
 ![Figure 6-9. Changing the length is invisible in the original](images/figure6-9.png)
 
+## Slices as Buffers
+
+When reading data from an external resource (like a file or a network connection), many languages use code like this:
+
+```
+r = open_resource()
+while r.has_data() {
+    data_chunk = r.next_chunk()
+    process(data_chunk)
+}
+close(r)
+```
+
+The problem with this pattern is that every time we iterate through that while loop, we allocate another data_chunk even
+though each one is only used once. This creates lots of unnecessary memory allocations. Garbage-collected languages
+handle those allocations for you automatically, but the work still needs to be done to clean them up when you are done
+processing.
+
+Even though Go is a garbage-collected language, writing idiomatic Go means avoiding unneeded allocations. Rather than
+returning a new allocation each time we read from a data source, we create a slice of bytes once and use it as a buffer
+to read data from the data source:
+
+```go
+file, err := os.Open(fileName)
+if err != nil {
+    return err
+}
+defer file.Close()
+data := make([]byte, 100)
+for {
+    count, err := file.Read(data)
+    if err != nil {
+        return err
+    }
+    if count == 0 {
+            return nil
+    }
+    process(data[:count])
+}
+```
+
+In this code, we create a buffer of 100 bytes and each time through the loop, we copy the next block of bytes up to 100
+into the slice. We then pass the populated portion of the buffer to function.
 
 ## Reducing the Garbage Collector’s Workload
