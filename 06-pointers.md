@@ -337,7 +337,91 @@ for {
 }
 ```
 
-In this code, we create a buffer of 100 bytes and each time through the loop, we copy the next block of bytes up to 100
-into the slice. We then pass the populated portion of the buffer to function.
+In this code, we create a buffer of 100 bytes and each time through the loop, we copy the next block of bytes (up to 100
+bytes) into the slice. We then pass the populated portion of the buffer to function. By using buffers we reduce the work
+done by the garbage collector.
 
 ## Reducing the Garbage Collector’s Workload
+
+When programmers talk about “garbage” what they mean is “data that has no more pointers pointing to it.” Once there are
+no more pointers pointing to some data, the memory that this data takes up can be reused. If the memory isn’t recovered,
+the program’s memory usage would continue to grow until the computer ran out of RAM. The job of a garbage collector is
+to automatically detect unused memory and recover it so it can be reused.
+
+A [_stack_](https://www.youtube.com/watch?v=IX3fDYz0WyM) is a consecutive block of memory, and every function call in
+thread of execution shares the same stack. Allocating memory on the stack is fast and simple. A stack pointer tracks the
+last location where memory was allocated; allocating additional memory is done by moving the stack pointer. When a
+function is invoked, a new stack frame is created for the function’s data. Local variables are stored on the stack,
+along with parameters passed into a function. Each new variable moves the stack pointer by the size of the value. When a
+function exits, its return values are copied back to the calling function via the stack and the stack pointer is moved
+back to the beginning of the stack frame for the exited function, deallocating all of the stack memory that was used by
+that function’s local variables and parameters.
+
+> Go is unusual in that it can actually increase the size of a stack while the program is running. This is possible
+> because each goroutine has its own stack and goroutines are managed by the Go runtime, not by the underlying operating
+> system. This has advantages (Go stacks start small and use less memory) and disadvantages (when the stack needs to grow,
+> all of the data on the stack needs to be copied, which is slow)
+
+To store something on the stack, you have to know exactly how big it is at compile time. When you look at the value
+types in Go (primitive values, arrays, and structs), they all have one thing in common: we know exactly how much memory
+they take at compile time. Because their sizes are known, they can be allocated on the stack instead of the heap. The
+size of a pointer type is also known, and it is also stored on the stack.
+
+The rules are more complicated when it comes to the data that the pointer points to. In order for Go to allocate the
+data the pointer points to on the stack, several conditions must be true. It must be a local variable whose data size is
+known at compile time. The pointer cannot be returned from the function. If the pointer is passed into a function, the
+compiler must be able to ensure that these conditions still hold.
+
+When the compiler determines that the data can’t be stored on the stack, we say that the data the pointer points to
+_escapes_ the stack and the compiler stores the data on the heap.
+
+The _heap_ is the memory that’s managed by the garbage collector.
+
+Any data that’s stored on the heap is valid as long as it can be tracked back to a pointer type variable on a stack.
+Once there are no more pointers pointing to that data (or to data that points to that data), the data becomes garbage
+and it’s the job of the garbage collector to clear it out.
+
+> A common source of bugs in C programs is returning a pointer to a local variable. In C, this results in a pointer
+> pointing to invalid memory. The Go compiler is smarter. When it sees that a pointer to a local variable is returned, the
+> local variable’s value is stored on the heap.
+
+The _escape analysis_ done by the Go compiler isn’t perfect. There are some cases where data that could be stored on the
+stack escapes to the heap.
+
+You might be wondering: what’s so bad about storing things on the heap? There are two problems related to performance:
+
+1. First is that the garbage collector takes time to do its work. It isn’t trivial to keep track of all of the available
+   chunks of free memory on the heap or tracking which used blocks of memory still have valid pointers. This is time
+   that’s taken away from doing the processing that your program is written to do. Many garbage collection algorithms
+   have been written, and they can be placed into two rough categories: those that are designed for higher throughput
+   (find the most garbage possible in a single scan) or lower latency (finish the garbage scan as quickly as possible).
+   The garbage collector used by the Go runtime favors low latency. Each garbage collection cycle is designed to take
+   less than 500 microseconds. However, if your Go program creates lots of garbage, then the garbage collector won’t be
+   able to find all of the garbage during a cycle, slowing down the collector and increasing memory usage.
+2. The second problem deals with the nature of computer hardware. RAM might mean “random access memory,” but the fastest
+   way to read from memory is to read it sequentially. A slice of structs in Go has all of the data laid out
+   sequentially in memory. This makes it fast to load and fast to process. A slice of pointers to structs (or structs
+   whose fields are pointers) has its data scattered across RAM, making it far slower to read and process. Forrest Smith
+   wrote an in-depth [blog post](https://www.forrestthewoods.com/blog/memory-bandwidth-napkin-math/) that explores how
+   much this can affect performance. His numbers indicate that it’s roughly two orders of magnitude slower to access
+   data via pointers that are stored randomly in RAM.
+
+In Java, local variables and parameters are stored in the stack, just like Go. However, as we discussed earlier, objects
+in Java are implemented as pointers. That means for every object variable instance, only the pointer to it is allocated
+on the stack; the data within the object is allocated on the heap. Only primitive values (numbers, booleans, and chars)
+are stored entirely on the stack. This means that the garbage collector in Java has to do a great deal of work.
+
+Now you can see why Go encourages you to use pointers sparingly. We reduce the workload of the garbage collector by
+making sure that as much as possible is stored on the stack. Slices of structs or primitive types have their data lined
+up sequentially in memory for rapid access.
+
+If you are interested in the implementation details, you may want to listen to the talk Rick Hudson gave at the
+International Symposium on Memory Management in 2018, describing
+the [history and implementation](https://go.dev/blog/ismmkeynote) of the Go garbage collector.
+
+If you want to learn more about heap versus stack allocation and escape analysis in Go, there are excellent blog posts
+that cover the topic, including ones by
+[William Kennedy](https://www.ardanlabs.com/blog/2017/05/language-mechanics-on-stacks-and-pointers.html) of Arden Labs
+and [Achille Roussel](https://segment.com/blog/allocation-efficiency-in-high-performance-go-services/) and Rick Branson
+of Segment.
+
