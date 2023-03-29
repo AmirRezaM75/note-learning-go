@@ -95,3 +95,59 @@ receiver methods to be in the _method set_ for a pointer instance. For a value i
 are in the method set.
 
 ### Code Your Methods for nil Instances
+
+What happens when you call a method on a nil instance?
+
+```go
+type IntTree struct {
+  val int
+  left, right *IntTree
+}
+
+func (it *IntTree) Insert(val int) *IntTree {
+  if it == nil {
+    return &IntTree{val: val}
+  }
+  if val < it.val {
+    it.left = it.left.Insert(val)
+  } else if val > it.val {
+    it.right = it.right.Insert(val)
+  }
+  return it
+}
+```
+
+If it’s a method with a value receiver, you’ll get a panic, as there is no value being pointed to by the pointer. If
+it’s a method with a pointer receiver, it can work if the method is written to handle the possibility of a nil instance.
+
+Pointer receivers work just like pointer function parameters; it’s a copy of the pointer that’s passed into the method.
+Just like nil parameters passed to functions, if you change the copy of the pointer, you haven’t changed the original.
+This means you can’t write a pointer receiver method that handles nil and makes the original pointer non-nil.
+
+### Methods Are Functions Too
+
+```go
+type Adder struct {
+  start int
+}
+
+func (a Adder) AddTo(val int) int {
+  return a.start + val
+}
+```
+
+We can also assign the method to a variable or pass it to a parameter of type `func(int)int`. This is called a _method
+value_:
+
+```go
+myAdder := Adder{start: 10}
+f1 := myAdder.AddTo
+fmt.Println(f1(10)) // prints 20
+```
+
+You can also create a function from the type itself. This is called a _method expression_:
+
+```go
+f2 := Adder.AddTo
+fmt.Println(f2(myAdder, 15)) // prints 25
+```
