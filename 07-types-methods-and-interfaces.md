@@ -151,3 +151,84 @@ You can also create a function from the type itself. This is called a _method ex
 f2 := Adder.AddTo
 fmt.Println(f2(myAdder, 15)) // prints 25
 ```
+
+### Type Declarations Aren’t Inheritance
+
+You can also declare a user-defined type based on another user-defined type:
+
+```go
+type Score int
+type HighScore Score
+```
+
+It looks a bit like inheritance, but it isn’t. You can’t assign an instance of type HighScore to a variable of type
+Score or vice versa without a type conversion. Furthermore, any methods defined on Score aren’t defined on HighScore:
+
+```go
+// assigning literals and constants compatible with the underlying type is valid
+var i int = 300
+var s Score = 100
+var hs HighScore = 200
+hs = s // compilation error!
+s = i // compilation error!
+s = Score(i) // ok
+hs = HighScore(s) // ok
+```
+
+### Types Are Executable Documentation
+
+Types are documentation. They make code clearer by providing a name for a concept and describing the kind of data that
+is expected.
+
+### iota Is for Enumerations—Sometimes
+
+Go doesn't have an enumeration type. Instead, it has `iota`, which lets you assign an increasing value to a set of
+constants.
+
+When using `iota`, the best practice is to first define a type based on `int` that will represent all of the valid
+values:
+
+```go
+type MailCategory int
+```
+
+Next, use a const block to define a set of values for your type:
+
+```go
+const (
+  Uncategorized MailCategory = iota // 0
+  Personal
+  Spam
+  Social
+  Advertisements
+)
+```
+
+When a new const block is created, `iota` is set back to 0.
+
+> Using iota with constants is fragile when you care about the value. You don’t want a future maintainer to insert a new
+> constant in the middle of the list and break your code.
+
+It may be necessary to skip a value. If so, you can use the _ (underscore) operator:
+
+```go
+const (
+  _ MailCategory = iota
+  Uncategorized // 1
+  _
+  Personal // 3
+)
+```
+
+`Iota` can be used to quickly create the correct values by using the bit shift operator.
+
+```go
+const (
+  read   = 1 << iota // 00000001 = 1
+  write              // 00000010 = 2
+  remove             // 00000100 = 4
+  
+  // admin will have all of the permissions
+  admin = read | write | remove
+)
+```
